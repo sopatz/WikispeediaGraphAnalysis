@@ -20,7 +20,7 @@ numNodes = nx.number_of_nodes(G)
 print(f"Number of Nodes: {numNodes}")
 
 numEdges = nx.number_of_edges(G)
-print(f"Number of Nodes: {numEdges}")
+print(f"Number of Edges: {numEdges}")
 
 graphFolder = "Graphs"
 graphOutputFile = "linkGraph.graphml"
