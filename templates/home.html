@@ -14,16 +14,38 @@
             <p>Built by Seth Opatz, Austin Joseph, and Ben Leber</p>
         </div>
 
-        <form class="m-3 border">
+        <form class="m-3 border rounded" action="/result" method="post">
+            <h4 class="m-3">Select Pages</h4>
             <div class="m-3">
-                <label for="" class="form-label">Starting Position</label>
-                <input type="text" class="form-control" id="startInput">
+                <label for="startInput" class="form-label">Starting Page</label>
+                <input type="text" class="form-control" id="startInput" name="startInput" placeholder="Search here...">
+                <div id="startingLinkDropdown"></div>
             </div>
             <div class="m-3">
-                <label for="" class="form-label">Ending Position</label>
-                <input type="text" class="form-control" id="endInput">
+                <label for="endInput" class="form-label">Ending Page</label>
+                <input type="text" class="form-control" id="endInput" name="endInput" placeholder="Search here...">
+                <div id="endingLinkDropdown"></div>
             </div>
-            <button class="m-3 btn btn-primary">Submit</button>
+            <div class="m-3">
+                <label for="numPath" class="form-label">Number of Generated Paths</label>
+                <input type="number" class="form-control" id="numInput" name="numInput" placeholder="Input number..." value=5>
+            </div>
+            <button type="submit" class="m-3 btn btn-primary">Submit</button>
         </form>
+
+        {% if results %}
+        <div id="result-container" class="m-3 border rounded">
+            <h4 class="m-3 border-bottom">Generated Paths</h4>
+            {% for path, nodes_expanded, time_elapsed in results %}
+            <h6 class="mx-3 my-0"><b>Path #{{ loop.index }}:</b></h6>
+            <p class="mx-3 my-0">
+                {% for step in path %}{{ step }} -> {% endfor %}<b>Completed</b>
+            </p>
+            <p class="mx-3 my-0">Steps taken: {{ path|length }}</p>
+            <p class="mx-3 my-0">Nodes Expanded: {{ nodes_expanded }}</p>
+            <p class="mx-3 mt-0 pb-3 border-bottom">Time Elapsed: {{ time_elapsed }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
     </body>
 </html>
