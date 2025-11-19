@@ -2,18 +2,19 @@ import networkx as nx
 import heapq
 import time
 
-#reading and outputting number of nodes and edges for checking
+# Create graph using networkx
 graph = nx.read_graphml("Graphs/linkGraph.graphml")
 
-# Getting PageRank
+# Get the PageRank scores of all nodes in the graph
 # Using alpha value of 0.85 (that is the value used by Google)
 pagerank_scores = nx.pagerank(graph, alpha=0.85)
 
-# Normalize pagerank to [0,1]
+# Normalize pagerank values to [0,1]
 min_pr = min(pagerank_scores.values())
 max_pr = max(pagerank_scores.values())
 # 0 = lowest original PageRank, 1 = highest original PageRank
 normalized_pagerank = {n: 0.0 for n in graph.nodes()}
+
 
 # Helper function to reconstruct path from predecessor dictionary
 def reconstruct(prev_node, goal_node):
@@ -28,15 +29,17 @@ def reconstruct(prev_node, goal_node):
     path.reverse()
     return path
 
+
+# Function that implements the A* shortest path algorithm with a PageRank-informed heuristic
 def astar_with_pagerank(graph, start, goal, beta=5.0):
     """
     A* variant using a PageRank-derived heuristic:
-      h(n) = beta * (1 - pr_norm[n])
-    This biases the search toward high-PageRank nodes (low h).
-    beta controls how strongly the heuristic influences search.
-    If beta == 0, reduces to Dijkstra.
-    Note: This heuristic is not provably admissible; use with that caveat.
-    Returns (path, nodes_expanded, time_seconds).
+      heuristic(node) = beta * (1 - normalized_pagerank[node])
+    This biases the search toward high-PageRank nodes (low heuristic value).
+    "beta" controls how strongly the heuristic influences search.
+    If beta == 0, algorithm just becomes Dijkstra's algorithm
+    Note: This heuristic is not provably admissible, meaning it does not always find the most optimal path
+    Returns (path, nodes_expanded, elapsed_time (in seconds))
     """
     initial_time = time.perf_counter()
     def heuristic(node):
@@ -98,15 +101,59 @@ def astar_with_pagerank(graph, start, goal, beta=5.0):
     elapsed_time = time.perf_counter() - initial_time
     return None, nodes_expanded, elapsed_time
 
-# Example usage of A* search with PageRank heuristic
+
+# Function that uses the A* PageRank algorithm to find the k best paths
+def k_best_paths(graph, start, goal, k, beta=5.0):
+    # List to store the results for each path
+    results = []
+
+    # Holds edges removed from the graph, forcing A* to find a different path
+    # These edges will be restored to the graph after the k paths are found
+    removed_edges = []
+
+    # Repeat following steps k times in an attempt to find k different paths
+    for i in range(k):
+        # Find shortest path using A* w/ PageRank algorithm
+        path, nodes_expanded, time_elapsed = astar_with_pagerank(graph, start, goal, beta)
+
+        # Stop looking for new shortest paths if none are found by exiting the loop
+        if path is None:
+            break
+
+        results.append((path, nodes_expanded, time_elapsed))
+
+        # Remove one unique edge of this path to force a new route next time
+        if len(path) > 1:
+            # FInd first edge in the path
+            edge_to_remove = (path[0], path[1])  # Only removing 1st edge causes minimal graph disturbance
+            # Remove the edge, but keep it in "removed_edges" for restoration later
+            if graph.has_edge(*edge_to_remove):
+                graph.remove_edge(*edge_to_remove)
+                removed_edges.append(edge_to_remove)
+
+    # Restore removed edges (so original graph remains unchanged)
+    # Important if algorithm is run multiple times
+    for source, target in removed_edges:
+        graph.add_edge(source, target)
+
+    return results
+
+
+# Example usage of A* search with PageRank heuristic to find k shortest paths
 if __name__ == "__main__":
     # Specify start and goal webpage from graph
-    start_page = "Beer"
-    goal_page = "Typewriter"
+    start_page = "Attack on Pearl Harbor"
+    goal_page = "Double bass"
+    k = 5
 
-    print(f"Path from {start_page} to {goal_page}: ")
-    path, nodes_expanded, elapsed_time = astar_with_pagerank(graph, start_page, goal_page, beta=5.0)
-    print(f"Path: {path}")
-    print(f"Path length: {len(path)}")
-    print(f"Nodes expanded: {nodes_expanded}")
-    print(f"Time elapsed: {elapsed_time:.6f} seconds")
+    print(f"\n{k} best paths found from the page \"{start_page}\" to \"{goal_page}\" using A* search with a PageRank-informed heuristic: ")
+    results = k_best_paths(graph, start_page, goal_page, k, beta=5.0)
+    total_time = 0
+    for i, (path, nodes_expanded, time_elapsed) in enumerate(results, 1):
+        print(f"\n=== Path #{i} ===")
+        print(f"Path: {path}")
+        print(f"Length: {len(path)}")
+        print(f"Nodes Expanded: {nodes_expanded}")
+        print(f"Time: {time_elapsed:.6f}s")
+        total_time += time_elapsed
+    print(f"\nTotal Time Elapsed: {total_time:.6f}s\n")
