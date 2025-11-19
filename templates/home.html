@@ -35,7 +35,7 @@
 
         {% if results %}
         <div id="result-container" class="m-3 border rounded">
-            <h4 class="m-3 border-bottom">Generated Paths</h4>
+            <h4 class="m-3 pb-3 border-bottom">Generated Paths</h4>
             {% for path, nodes_expanded, time_elapsed in results %}
             <h6 class="mx-3 my-0"><b>Path #{{ loop.index }}:</b></h6>
             <p class="mx-3 my-0">
@@ -45,6 +45,12 @@
             <p class="mx-3 my-0">Nodes Expanded: {{ nodes_expanded }}</p>
             <p class="mx-3 mt-0 pb-3 border-bottom">Time Elapsed: {{ time_elapsed }}</p>
             {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if message %}
+        <div id="message-box" class="alert alert-warning m-3" role="alert">
+            {{ message }}
         </div>
         {% endif %}
     </body>

@@ -28,7 +28,11 @@ def result():
         #     print(f"Path length: {len(path)}")
         #     print(f"Nodes expanded: {nodes_expanded}")
 
-    return render_template('home.html', results=results)
+    if (results):
+        return render_template('home.html', results=results)
+    else:
+        message = "Could not find path between " + input1 + " and " + input2 + "."
+        return render_template('home.html', message=message)
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)
