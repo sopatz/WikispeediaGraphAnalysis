@@ -43,23 +43,33 @@ def result():
         graph = nx.read_graphml("Graphs/linkGraph.graphml")
 
         # gets the two inputs from the form
-        input1 = request.form.get('startInput')
-        input2 = request.form.get('endInput')
-        input3 = request.form.get('numInput', type=int)
+        start = request.form.get('startInput')
+        end = request.form.get('endInput')
+        num_paths = request.form.get('numInput', type=int)
 
         # get path, just need to display it onto the website
-        results = k_best_paths(graph, input1, input2, input3, beta=5.0)
+        results = k_best_paths(graph, start, end, num_paths, beta=5.0)
+
+        # Format time to 6 decimals
+        formatted_results = []
+        total_time = 0.0
+
+        for path, expanded, t in results:
+            t6 = round(t, 6)
+            total_time += t
+            formatted_results.append((path, expanded, t6))
+
+        # Terminal info, if wanted
         # for i, (path, nodes_expanded) in enumerate(results, 1):
-        #     # terminal info
         #     print(f"Path from {input1} to {input2}: ")
         #     print(f"Path: {path}")
         #     print(f"Path length: {len(path)}")
         #     print(f"Nodes expanded: {nodes_expanded}")
 
     if (results):
-        return render_template('home.html', results=results)
+        return render_template('home.html', results=formatted_results, total_time=round(total_time, 6))
     else:
-        message = "Could not find path between " + input1 + " and " + input2 + "."
+        message = "Could not find path between " + start + " and " + end + "."
         return render_template('home.html', message=message)
 
 if __name__ == '__main__':
