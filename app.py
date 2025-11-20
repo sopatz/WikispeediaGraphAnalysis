@@ -67,10 +67,11 @@ def result():
         #     print(f"Nodes expanded: {nodes_expanded}")
 
     if (results):
-        return render_template('home.html', results=formatted_results, total_time=round(total_time, 6))
+        return render_template('home.html', results=formatted_results, total_time=round(total_time, 6), 
+                               start=start, end=end, num_paths=num_paths)
     else:
         message = "Could not find path between " + start + " and " + end + "."
-        return render_template('home.html', message=message)
+        return render_template('home.html', message=message, start=start, end=end, num_paths=num_paths)
 
 if __name__ == '__main__':
     app.run(port=5001, debug=True)

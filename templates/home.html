@@ -18,28 +18,53 @@
             <h4 class="m-3">Select Pages</h4>
             <div class="m-3">
                 <label for="startInput" class="form-label">Starting Page</label>
-                <input type="text" class="form-control" id="startInput" name="startInput" placeholder="Search here...">
+                <input type="text" 
+                       class="form-control" 
+                       id="startInput" 
+                       name="startInput" 
+                       placeholder="Search here..."
+                       value="{{ start if start else '' }}"> <!-- Ensure form does not get reset when it is submit -->
                 <div id="startingLinkDropdown"></div>
             </div>
             <div class="m-3">
                 <label for="endInput" class="form-label">Ending Page</label>
-                <input type="text" class="form-control" id="endInput" name="endInput" placeholder="Search here...">
+                <input type="text" 
+                       class="form-control" 
+                       id="endInput" 
+                       name="endInput" 
+                       placeholder="Search here..."
+                       value="{{ end if end else '' }}">
                 <div id="endingLinkDropdown"></div>
             </div>
             <div class="m-3">
-                <label for="numPath" class="form-label">Number of Generated Paths</label>
-                <input type="number" class="form-control" id="numInput" name="numInput" placeholder="Input number..." value=5 min="1" max="100">
+                <label for="numPath" class="form-label">Number of Paths to Generate</label>
+                <input type="number" 
+                      class="form-control" 
+                      id="numInput" 
+                      name="numInput" 
+                      placeholder="Input number..." 
+                      min="1" max="100"
+                      value="{{ num_paths if num_paths else 5 }}">
             </div>
             <button type="submit" class="m-3 btn btn-primary">Submit</button>
         </form>
 
         {% if results %}
         <div id="result-container" class="m-3 border rounded">
-            <h4 class="m-3 pb-3 border-bottom">Generated Paths</h4>
+            <h4 class="m-3 pb-3 border-bottom">Generated {{ num_paths }} Path{% if num_paths != 1 %}s{% endif %}
+                                               from <b>{{ start }}</b> to <b>{{ end }}</b></h4>
             {% for path, nodes_expanded, time_elapsed in results %}
-            <h6 class="mx-3 my-0"><b>Path #{{ loop.index }}:</b></h6>
+            <h5 class="mx-3 my-0 mb-2 text-decoration-underline"><b>Path #{{ loop.index }}:</b></h5>
             <p class="mx-3 my-0">
-                {% for step in path %}{{ step }} -> {% endfor %}<b>Completed</b>
+                {% for step in path %}
+                    {% if loop.first %}
+                        <b>{{ step }}</b> ->
+                    {% elif loop.last %}
+                        <b>{{ step }}</b>
+                    {% else %}
+                        {{ step }} ->
+                    {% endif %}
+                {% endfor %}
             </p>
             <p class="mx-3 my-0">Steps taken: {{ path|length }}</p>
             <p class="mx-3 my-0">Nodes Expanded: {{ nodes_expanded }}</p>
