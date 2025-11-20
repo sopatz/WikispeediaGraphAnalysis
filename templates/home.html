@@ -53,5 +53,70 @@
             {{ message }}
         </div>
         {% endif %}
+
+        <script>
+            // Function to set up autocomplete for one text box
+            function setupAutocomplete(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);  // div that will show suggestion list
+
+                // Runs following code every time user types in input field
+                input.addEventListener("input", () => {
+                    // Read current text in the box
+                    const query = input.value.trim();
+                    // If the user clears the text box, empty the dropdown and hide it
+                    if (!query) {
+                        dropdown.innerHTML = "";
+                        dropdown.style.display = "none";
+                        return;
+                    }
+
+                    // Send request to the Flask app's "/suggest" route
+                    fetch(`/suggest?q=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            dropdown.innerHTML = "";
+                            // If no matches, hide dropdown
+                            if (data.length === 0) {
+                                dropdown.style.display = "none";
+                                return;
+                            }
+
+                            dropdown.style.display = "block";
+                            dropdown.className = "list-group";
+
+                            // Loop through each suggested article title
+                            data.forEach(item => {
+                                // Create clickable list element
+                                const opt = document.createElement("a");
+                                opt.className = "list-group-item list-group-item-action";
+                                opt.textContent = item;  // Set the visible text for the option
+
+                                // When a suggestion is clicked, put the clicked value in the input field and close the dropdown
+                                opt.onclick = () => {
+                                    input.value = item;
+                                    dropdown.innerHTML = "";
+                                    dropdown.style.display = "none";
+                                };
+
+                                // Actually add suggested article name to dropdown
+                                dropdown.appendChild(opt);
+                            });
+                        });
+                });
+
+                // Hide dropdown if user clicks away
+                document.addEventListener("click", e => {
+                    if (!dropdown.contains(e.target) && e.target !== input) {
+                        dropdown.innerHTML = "";
+                        dropdown.style.display = "none";
+                    }
+                });
+            }
+
+            // Activate auto-complete for both input fields
+            setupAutocomplete("startInput", "startingLinkDropdown");
+            setupAutocomplete("endInput", "endingLinkDropdown");
+        </script>
     </body>
 </html>
