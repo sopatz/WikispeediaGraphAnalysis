@@ -47,11 +47,11 @@ def result():
         end = request.form.get('endInput')
         num_paths = request.form.get('numInput', type=int)
 
-        if not input1:
+        if not start:
             message = "Please input a starting page."
             return render_template('home.html', message=message)
         
-        if not input2:
+        if not end:
             message = "Please input an end page."
             return render_template('home.html', message=message)
 
