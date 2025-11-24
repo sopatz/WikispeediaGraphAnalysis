@@ -10,7 +10,7 @@
     <body>
         <div class="m-3">
             <h1>WikiSpeedia Pathfinding</h1>
-            <h3>using PageRank & A* Algorithms</h3>
+            <h3>Using PageRank-informed A* Search Algorithm</h3>
             <p>Built by Seth Opatz, Austin Joseph, and Ben Leber</p>
         </div>
 
@@ -18,33 +18,59 @@
             <h4 class="m-3">Select Pages</h4>
             <div class="m-3">
                 <label for="startInput" class="form-label">Starting Page</label>
-                <input type="text" class="form-control" id="startInput" name="startInput" placeholder="Search here...">
+                <input type="text" 
+                       class="form-control" 
+                       id="startInput" 
+                       name="startInput" 
+                       placeholder="Search here..."
+                       value="{{ start if start else '' }}"> <!-- Ensure form does not get reset when it is submit -->
                 <div id="startingLinkDropdown"></div>
             </div>
             <div class="m-3">
                 <label for="endInput" class="form-label">Ending Page</label>
-                <input type="text" class="form-control" id="endInput" name="endInput" placeholder="Search here...">
+                <input type="text" 
+                       class="form-control" 
+                       id="endInput" 
+                       name="endInput" 
+                       placeholder="Search here..."
+                       value="{{ end if end else '' }}">
                 <div id="endingLinkDropdown"></div>
             </div>
             <div class="m-3">
-                <label for="numInput" class="form-label">Number of Generated Paths</label>
-                <input type="number" class="form-control" id="numInput" name="numInput" placeholder="Input number..." value=5>
+                <label for="numPath" class="form-label">Number of Paths to Generate</label>
+                <input type="number" 
+                      class="form-control" 
+                      id="numInput" 
+                      name="numInput" 
+                      placeholder="Input number..." 
+                      min="1" max="100"
+                      value="{{ num_paths if num_paths else 5 }}">
             </div>
             <button type="submit" class="m-3 btn btn-primary">Submit</button>
         </form>
 
         {% if results %}
         <div id="result-container" class="m-3 border rounded">
-            <h4 class="m-3 pb-3 border-bottom">Generated Paths</h4>
+            <h4 class="m-3 pb-3 border-bottom">Generated {{ num_paths }} Path{% if num_paths != 1 %}s{% endif %}
+                                               from <b>{{ start }}</b> to <b>{{ end }}</b></h4>
             {% for path, nodes_expanded, time_elapsed in results %}
-            <h6 class="mx-3 my-0"><b>Path #{{ loop.index }}:</b></h6>
+            <h5 class="mx-3 my-0 mb-2 text-decoration-underline"><b>Path #{{ loop.index }}:</b></h5>
             <p class="mx-3 my-0">
-                {% for step in path %}{{ step }} -> {% endfor %}<b>Completed</b>
+                {% for step in path %}
+                    {% if loop.first %}
+                        <b>{{ step }}</b> ->
+                    {% elif loop.last %}
+                        <b>{{ step }}</b>
+                    {% else %}
+                        {{ step }} ->
+                    {% endif %}
+                {% endfor %}
             </p>
             <p class="mx-3 my-0">Steps taken: {{ path|length }}</p>
             <p class="mx-3 my-0">Nodes Expanded: {{ nodes_expanded }}</p>
-            <p class="mx-3 mt-0 pb-3 border-bottom">Time Elapsed: {{ time_elapsed }}</p>
+            <p class="mx-3 mt-0 pb-3 border-bottom">Time Elapsed: {{ time_elapsed }}s</p>
             {% endfor %}
+            <h5 class="m-3">Total Time Elapsed: <b>{{ total_time }}s</b></h5>
         </div>
         {% endif %}
 
@@ -53,5 +79,85 @@
             {{ message }}
         </div>
         {% endif %}
+
+        <script>
+            // Function to set up autocomplete for one text box
+            function setupAutocomplete(inputId, dropdownId) {
+                const input = document.getElementById(inputId);
+                const dropdown = document.getElementById(dropdownId);  // div that will show suggestion list
+
+                // Runs following code every time user types in input field
+                input.addEventListener("input", () => {
+                    // Read current text in the box
+                    const query = input.value.trim();
+                    // If the user clears the text box, empty the dropdown and hide it
+                    if (!query) {
+                        dropdown.innerHTML = "";
+                        dropdown.style.display = "none";
+                        return;
+                    }
+
+                    // Send request to the Flask app's "/suggest" route
+                    fetch(`/suggest?q=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            dropdown.innerHTML = "";
+                            // If no matches, hide dropdown
+                            if (data.length === 0) {
+                                dropdown.style.display = "none";
+                                return;
+                            }
+
+                            dropdown.style.display = "block";
+                            dropdown.className = "list-group";
+
+                            // Loop through each suggested article title
+                            data.forEach(item => {
+                                // Create clickable list element
+                                const opt = document.createElement("a");
+                                opt.className = "list-group-item list-group-item-action";
+                                opt.textContent = item;  // Set the visible text for the option
+
+                                // When a suggestion is clicked, put the clicked value in the input field and close the dropdown
+                                opt.onclick = () => {
+                                    input.value = item;
+                                    dropdown.innerHTML = "";
+                                    dropdown.style.display = "none";
+                                };
+
+                                // Actually add suggested article name to dropdown
+                                dropdown.appendChild(opt);
+                            });
+                        });
+                });
+
+                // Hide dropdown if user clicks away
+                document.addEventListener("click", e => {
+                    if (!dropdown.contains(e.target) && e.target !== input) {
+                        dropdown.innerHTML = "";
+                        dropdown.style.display = "none";
+                    }
+                });
+            }
+
+            // Activate auto-complete for both input fields
+            setupAutocomplete("startInput", "startingLinkDropdown");
+            setupAutocomplete("endInput", "endingLinkDropdown");
+        </script>
+
+        <script>
+            // Prevent user from inputting any numbers outside the range 1-100
+            document.getElementById("numInput").addEventListener("input", function () {
+                let val = parseInt(this.value);
+
+                // If empty, allow deletion
+                if (this.value === "") return;
+
+                // Enforce 1–100 range while typing
+                if (val < 1) this.value = 1;
+                if (val > 100) this.value = 100;
+            });
+        </script>
+
     </body>
 </html>
