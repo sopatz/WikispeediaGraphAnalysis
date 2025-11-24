@@ -19,6 +19,14 @@ def result():
         input2 = request.form.get('endInput')
         input3 = request.form.get('numInput', type=int)
 
+        if not input1:
+            message = "Please input a starting page."
+            return render_template('home.html', message=message)
+        
+        if not input2:
+            message = "Please input an end page."
+            return render_template('home.html', message=message)
+
         # get path, just need to display it onto the website
         results = k_best_paths(graph, input1, input2, input3, beta=5.0)
         # for i, (path, nodes_expanded) in enumerate(results, 1):
