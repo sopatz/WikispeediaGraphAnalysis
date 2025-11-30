@@ -80,6 +80,13 @@
         </div>
         {% endif %}
 
+        {% if graph %} 
+        <div id="visualization" class="m-3 border rounded">
+            <h4 class="m-3 pb-3 border-bottom">Path Visualizations</h4>
+            <div class="m-0 borderless">{% include 'graph.html' %}</div>
+        </div>
+        {% endif %}
+
         <script>
             // Function to set up autocomplete for one text box
             function setupAutocomplete(inputId, dropdownId) {

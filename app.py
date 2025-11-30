@@ -3,6 +3,7 @@ import networkx as nx
 from pathfinder import *
 import pandas as pd
 from urllib.parse import unquote  # for decoding Unicode characters such as 'É'
+from pyvis.network import Network # better graph visualization than networkx, in my opinion (ben)
 
 app = Flask(__name__)
 
@@ -39,8 +40,9 @@ def suggest():
 @app.route('/result', methods = ['POST'])
 def result():
     if request.method == 'POST':
-        #reading and outputting number of nodes and edges for checking
+        # reading and outputting number of nodes and edges for checking
         graph = nx.read_graphml("Graphs/linkGraph.graphml")
+        visualizedGraph = Network(notebook=True, directed=True)
 
         # gets the two inputs from the form
         start = request.form.get('startInput')
@@ -67,6 +69,17 @@ def result():
             total_time += t
             formatted_results.append((path, expanded, t6))
 
+        # add graphs to visualization
+        for path, expanded, t in results:
+            for i in range(len(path) - 1):
+                visualizedGraph.add_node(path[i])
+                visualizedGraph.add_node(path[i+1])
+                visualizedGraph.add_edge(path[i], path[i+1])
+
+        # generate the graph
+        visualizedGraph.show_buttons(filter_=['physics'])
+        visualizedGraph.show('templates/graph.html')
+
         # Terminal info, if wanted
         # for i, (path, nodes_expanded) in enumerate(results, 1):
         #     print(f"Path from {input1} to {input2}: ")
@@ -74,9 +87,11 @@ def result():
         #     print(f"Path length: {len(path)}")
         #     print(f"Nodes expanded: {nodes_expanded}")
 
+
+
     if (results):
         return render_template('home.html', results=formatted_results, total_time=round(total_time, 6), 
-                               start=start, end=end, num_paths=num_paths)
+                               start=start, end=end, num_paths=num_paths, graph=visualizedGraph)
     else:
         message = "Could not find path between " + start + " and " + end + "."
         return render_template('home.html', message=message, start=start, end=end, num_paths=num_paths)
